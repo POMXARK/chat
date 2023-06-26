@@ -1,35 +1,40 @@
 version: "3.7"
+
+# For local development, only database is running
+#
+# docker-compose up -d
+# uvicorn app.main:app --reload
+#
+
 services:
-    app:
-        build:
-            args:
-                user: roman
-                uid: 1000
-            context: ./
-            dockerfile: Dockerfile
-        restart: unless-stopped
-        working_dir: /var/www/
-        volumes:
-            - ./:/var/www
+  default_database:
+    restart: unless-stopped
+    image: postgres:latest
+    volumes:
+      - default_database_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=${DEFAULT_DATABASE_DB}
+      - POSTGRES_USER=${DEFAULT_DATABASE_USER}
+      - POSTGRES_PASSWORD=${DEFAULT_DATABASE_PASSWORD}
+    env_file:
+      - .env
+    ports:
+      - "${DEFAULT_DATABASE_PORT}:5432"
 
-    db:
-        image: mysql:8.0
-        restart: unless-stopped
-        environment:
-            MYSQL_DATABASE: ${DB_DATABASE}
-            MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
-            MYSQL_PASSWORD: ${DB_PASSWORD}
-            MYSQL_USER: ${DB_USERNAME}
-            SERVICE_TAGS: dev
-            SERVICE_NAME: mysql
-        volumes:
-            - ./docker-compose/mysql:/docker-entrypoint-initdb.d
+  test_database:
+    restart: unless-stopped
+    image: postgres:latest
+    volumes:
+      - test_database_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=${TEST_DATABASE_DB}
+      - POSTGRES_USER=${TEST_DATABASE_USER}
+      - POSTGRES_PASSWORD=${TEST_DATABASE_PASSWORD}
+    env_file:
+      - .env
+    ports:
+      - "${TEST_DATABASE_PORT}:5432"
 
-    nginx:
-        image: nginx:alpine
-        restart: unless-stopped
-        ports:
-            - ${APP_PORT}:80
-        volumes:
-            - ./:/var/www
-            - ./docker-compose/nginx:/etc/nginx/conf.d/
+volumes:
+  test_database_data:
+  default_database_data:
