@@ -2,17 +2,9 @@
 
 namespace App\Http\Controllers\Chat;
 
+use App\DTO\MessageDTO;
 use App\Interfaces\ChatRepositoryInterface;
-use App\Interfaces\Statements\CompatibleWithChat;
-use App\Models\Message;
-use App\Repository\AlertRepository;
-use Carbon\Carbon;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
-use Illuminate\Support\Facades\DB;
-use Mockery\Exception;
-use Throwable;
 
 class ClientChatController extends ParentChatController
 {
@@ -31,7 +23,7 @@ class ClientChatController extends ParentChatController
      * @param Request $request
      * @return string
      */
-    public function postMessage(Request $request): string
+    public function postMessage(Request $request)
     {
         $text = trim($request->input('text', ''));
         $files = $request->file('files');
@@ -40,17 +32,18 @@ class ClientChatController extends ParentChatController
             return response()->json(['status' => false, 'msg' => 'Пожалуйста, введите сообщение или добавьте файл!']);
         }
 
-        $dto['from'] = $request->input('from_user_id');
-        $dto['to'] = $request->input('to_user_id');
-        $dto['stmt'] = $request->input('stmt_id');
-        $dto['files'] = $files;
-        $dto['text'] = $text;
+        $message = new MessageDTO(
+            $request->input('from'),
+            $request->input('to'),
+            $request->input('stmt'),
+            $text,
+            $files
+        );
 
-        $this->chatRepository->postMessage($dto);
+        $this->chatRepository->postMessage($message);
 
         return response()->json(['status' => true]);
     }
-
 
     /**
      * Загрузка сообщений в чат (обновление сообщений)
@@ -60,10 +53,12 @@ class ClientChatController extends ParentChatController
      */
     public function loadMessages(Request $request)
     {
-        $dto['stmt'] = $request->input('stmt');
-        $dto['from'] = $request->input('from');
-        $dto['to'] = $request->input('to');
+        $message = new MessageDTO(
+            $request->input('from'),
+            $request->input('to'),
+            $request->input('stmt')
+        );
 
-        return $this->chatRepository->loadMessages($dto);
+        return $this->chatRepository->loadMessages($message);
     }
 }

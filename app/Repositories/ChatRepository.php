@@ -2,6 +2,7 @@
 
 namespace App\Repositories;
 
+use App\DTO\MessageDTO;
 use App\Interfaces\ChatRepositoryInterface;
 use App\Models\Message;
 use Carbon\Carbon;
@@ -12,21 +13,21 @@ use Throwable;
 
 class ChatRepository implements ChatRepositoryInterface
 {
-    public function postMessage(array $dto): bool|JsonResponse
+    public function postMessage(MessageDTO $message): bool|JsonResponse
     {
         DB::beginTransaction();
         try {
             $newMessage = Message::create([
-                'text'         => $dto['text'],
-                'from_user_id' => $dto['from'],
-                'to_user_id'   => $dto['to'],
-                'stmt_id'    => $dto['stmt'],
+                'text'         => $message->text,
+                'from_user_id' => $message->from,
+                'to_user_id'   => $message->to,
+                'stmt_id'    => $message->stmt,
                 'created_at'   => Carbon::now()
             ]);
 
             // TODO: сделать загрузку файлов
-//            if ($dto['files']) {
-//                $this->uploadFiles($dto['files'], $newMessage->id, auth()->id());
+//            if ($message['files']) {
+//                $this->uploadFiles($message['files'], $newMessage->id, auth()->id());
 //            }
 
             DB::commit();
@@ -38,30 +39,30 @@ class ChatRepository implements ChatRepositoryInterface
         return true;
     }
 
-    public function loadMessages(array $dto)
+    public function loadMessages(MessageDTO $message)
     {
         $builder = Message::select(DB::raw('DATE_FORMAT(updated_at, "%d.%m.%Y %H:%i") as updated, stmt_id, text, from_user_id, to_user_id, created_at'));
 
-        if ($stmtId = $dto['stmt']) {
+        if ($stmtId = $message->stmt) {
             $builder->where('stmt_id', $stmtId);
         }
-        if ($from = $dto['from']) {
+        if ($from = $message->from) {
             $builder->where('from_user_id', $from);
         }
-        if ($to = $dto['to']) {
+        if ($to = $message->to) {
             $builder->where('to_user_id', $to);
         }
 
-        if ($dto['from'] && $dto['to']) {
+        if ($message->from && $message->to) {
             $second = Message::select(DB::raw('DATE_FORMAT(updated_at, "%d.%m.%Y %H:%i") as updated_at, stmt_id, text, from_user_id, to_user_id, created_at'));
 
-            if ($stmtId = $dto['stmt']) {
+            if ($stmtId = $message->stmt) {
                 $second->where('stmt_id', $stmtId);
             }
-            if ($from = $dto['from']) {
+            if ($from = $message->from) {
                 $second->where('to_user_id', $from);
             }
-            if ($to = $dto['to']) {
+            if ($to = $message->to) {
                 $second->where('from_user_id', $to);
             }
 
