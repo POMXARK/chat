@@ -1,0 +1,75 @@
+openapi: 3.0.0
+info:
+  title: Chat API
+  description: Чат с возможностью записи истории чата
+  version: 0.0.1
+
+servers:
+  - url: http://localhost:8081/chat
+    description: local server
+#  - url: http://producation.app/chat
+#    description: production server
+
+components:
+  schemas:
+    Message:
+      type: object
+      properties:
+        text:
+          type: string
+          example: 'message'
+        stmt_id:
+          type: integer
+          example: 1
+        from_user_id:
+          type: string
+          example: fe2715e5-384d-4775-be07-3d87a02ad5ca
+        to_user_id:
+          type: string
+          example: 01614ba8-dc3a-4897-aa95-1e5afd2225ff
+paths:
+  /load:
+    get:
+      summary: Получить сообщения по заявке.
+      parameters:
+        - name: stmt
+          in: query #path
+          example: 1
+          description: Номер заявки.
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+        - name: from
+          in: query
+          example: fe2715e5-384d-4775-be07-3d87a02ad5ca
+        - name: to
+          in: query
+          example: 01614ba8-dc3a-4897-aa95-1e5afd2225ff
+      responses:
+        '200':
+          description: JSON array
+          content:
+            application/json:
+              schema:
+                type: object
+                items:
+                  type: string
+
+  /post:
+    post:
+      summary: Сохранить сообщения по заявке.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Message'
+      responses:
+        '200':
+          description: JSON array
+          content:
+            application/json:
+              schema:
+                type: object
+                items:
+                  type: string
