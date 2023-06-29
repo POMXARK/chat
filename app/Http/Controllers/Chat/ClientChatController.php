@@ -43,6 +43,8 @@ class ClientChatController extends ParentChatController
         $dto['from'] = $request->input('from_user_id');
         $dto['to'] = $request->input('to_user_id');
         $dto['stmt'] = $request->input('stmt_id');
+        $dto['files'] = $files;
+        $dto['text'] = $text;
 
         $this->chatRepository->postMessage($dto);
 
@@ -58,35 +60,11 @@ class ClientChatController extends ParentChatController
      */
     public function loadMessages(Request $request)
     {
-        $builder = Message::select(DB::raw('DATE_FORMAT(updated_at, "%d.%m.%Y %H:%i") as updated, stmt_id, text, from_user_id, to_user_id, created_at'));
+        $dto['stmt'] = $request->input('stmt');
+        $dto['from'] = $request->input('from');
+        $dto['to'] = $request->input('to');
 
-        if ($stmtId = $request->input('stmt')) {
-            $builder->where('stmt_id', $stmtId);
-        }
-        if ($from = $request->input('from')) {
-            $builder->where('from_user_id', $from);
-        }
-        if ($to = $request->input('to')) {
-            $builder->where('to_user_id', $to);
-        }
-
-        if ($request->input('from') && $request->input('to')) {
-            $second = Message::select(DB::raw('DATE_FORMAT(updated_at, "%d.%m.%Y %H:%i") as updated_at, stmt_id, text, from_user_id, to_user_id, created_at'));
-
-            if ($stmtId = $request->input('stmt')) {
-                $second->where('stmt_id', $stmtId);
-            }
-            if ($from = $request->input('from')) {
-                $second->where('to_user_id', $from);
-            }
-            if ($to = $request->input('to')) {
-                $second->where('from_user_id', $to);
-            }
-
-            $builder->union($second);
-        }
-
-        return $builder->orderBy('created_at')->get();//self::getSqlWithBindings($builder);
+        return $this->chatRepository->loadMessages($dto);
     }
 
     public static function getSqlWithBindings($query): string

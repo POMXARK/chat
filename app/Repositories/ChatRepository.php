@@ -38,8 +38,36 @@ class ChatRepository implements ChatRepositoryInterface
         return true;
     }
 
-    public function loadMessages()
+    public function loadMessages(array $dto)
     {
-        // TODO: Implement loadMessages() method.
+        $builder = Message::select(DB::raw('DATE_FORMAT(updated_at, "%d.%m.%Y %H:%i") as updated, stmt_id, text, from_user_id, to_user_id, created_at'));
+
+        if ($stmtId = $dto['stmt']) {
+            $builder->where('stmt_id', $stmtId);
+        }
+        if ($from = $dto['from']) {
+            $builder->where('from_user_id', $from);
+        }
+        if ($to = $dto['to']) {
+            $builder->where('to_user_id', $to);
+        }
+
+        if ($dto['from'] && $dto['to']) {
+            $second = Message::select(DB::raw('DATE_FORMAT(updated_at, "%d.%m.%Y %H:%i") as updated_at, stmt_id, text, from_user_id, to_user_id, created_at'));
+
+            if ($stmtId = $dto['stmt']) {
+                $second->where('stmt_id', $stmtId);
+            }
+            if ($from = $dto['from']) {
+                $second->where('to_user_id', $from);
+            }
+            if ($to = $dto['to']) {
+                $second->where('from_user_id', $to);
+            }
+
+            $builder->union($second);
+        }
+
+        return $builder->orderBy('created_at')->get();//self::getSqlWithBindings($builder);
     }
 }
