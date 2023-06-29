@@ -41,12 +41,12 @@ class ParentChatController extends Controller
             foreach ($files as $file) {
                 $filename = sprintf('%s.%s', str_random(32), $file->getClientOriginalExtension());
                 $filepath = 'client/' . $userId . '/comments/' . $filename;
-    
+
                 $commentFile = $storage->putFileAs('client/' . $userId . '/comments', $file, $filename);
                 if (!$commentFile) {
                     throw new UploadException();
                 }
-                
+
                 $uploadedPaths[] = $filepath;
 
                 MessageDocument::create([
@@ -90,7 +90,7 @@ class ParentChatController extends Controller
         $error404 = __('errors.document.not_found');
         /** @var User $user */
         $user = auth()->user();
-        
+
         try {
             /** @var MessageDocument $document */
             $document = MessageDocument::findOrFail($documentId);
@@ -98,7 +98,7 @@ class ParentChatController extends Controller
         } catch (ModelNotFoundException $e) {
             throw new ModelNotFoundException($error404);
         }
-        
+
         $storage = Storage::disk('documents');
 
         if (!$storage->exists($document->path)) {

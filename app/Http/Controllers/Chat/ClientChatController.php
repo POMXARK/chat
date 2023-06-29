@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Chat;
 
+use App\Interfaces\ChatRepositoryInterface;
 use App\Interfaces\Statements\CompatibleWithChat;
 use App\Models\Message;
 use App\Repository\AlertRepository;
@@ -17,62 +18,37 @@ class ClientChatController extends ParentChatController
 {
     protected $chatRow = 'client.child_stmt.chat';
 
+    private ChatRepositoryInterface $chatRepository;
+
+    public function __construct(ChatRepositoryInterface $chatRepository)
+    {
+        $this->chatRepository = $chatRepository;
+    }
+
     /**
      * Добавление сообщения в чат
      *
      * @param Request $request
-     * @param $childStmt
      * @return string
      */
     public function postMessage(Request $request): string
     {
         $text = trim($request->input('text', ''));
-
         $files = $request->file('files');
 
         if (!strlen($text) && !$files) {
             return response()->json(['status' => false, 'msg' => 'Пожалуйста, введите сообщение или добавьте файл!']);
         }
 
-        DB::beginTransaction();
-        try {
-            $newMessage = Message::create([
-                'text'         => $text,
-                'from_user_id' => $request->input('from_user_id'),
-                'to_user_id'   => $request->input('to_user_id'),
-                'stmt_id'    => $request->input('stmt_id'),
-                'created_at'   => Carbon::now()
-            ]);
+        $dto['from'] = $request->input('from_user_id');
+        $dto['to'] = $request->input('to_user_id');
+        $dto['stmt'] = $request->input('stmt_id');
 
-            if ($files) {
-                $this->uploadFiles($files, $newMessage->id, auth()->id());
-            }
-
-            DB::commit();
-        } catch (Throwable $e) {
-            DB::rollBack();
-            return response()->json(['status' => false, 'msg' => $e->getMessage()], Response::HTTP_UNPROCESSABLE_ENTITY);
-        }
+        $this->chatRepository->postMessage($dto);
 
         return response()->json(['status' => true]);
     }
 
-    /**
-     * Удаление сообщения из чата
-     * У клиента нет удаления сообщений, но может появиться (пока метод не используется)
-     *
-     * @param                    $messageId
-     */
-    public function removeMessage($childStmt, $messageId)
-    {
-//        $message = Message::find($messageId);
-//        if ($message->from_user_id == auth()->user()->id) {
-//            $status = Message::remove($messageId);
-//            return response()->json(['status' => $status]);
-//        } else {
-//            return response()->json(['status' => false]);
-//        }
-    }
 
     /**
      * Загрузка сообщений в чат (обновление сообщений)
