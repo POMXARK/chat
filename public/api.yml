@@ -18,18 +18,15 @@ components:
         text:
           type: string
           example: 'message'
-        stmt:
+        stmt_id:
           type: integer
           example: 1
-          description: Номер заявки.
-        from:
+        from_user_id:
           type: string
           example: fe2715e5-384d-4775-be07-3d87a02ad5ca
-          description: Кому (id пользователя).
-        to:
+        to_user_id:
           type: string
           example: 01614ba8-dc3a-4897-aa95-1e5afd2225ff
-          description: От кого (id пользователя).
 paths:
   /load:
     get:
@@ -46,11 +43,9 @@ paths:
         - name: from
           in: query
           example: fe2715e5-384d-4775-be07-3d87a02ad5ca
-          description: Кому (id пользователя).
         - name: to
           in: query
           example: 01614ba8-dc3a-4897-aa95-1e5afd2225ff
-          description: От кого (id пользователя).
       responses:
         '200':
           description: JSON array
