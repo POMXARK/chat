@@ -1,24 +1,40 @@
-# multiple stage build
+FROM php:8.2-fpm
 
-FROM python:3.10.1 as base
-ENV PIP_DISABLE_PIP_VERSION_CHECK=1
-ENV DOCKER_BUILDKIT=1
-WORKDIR /build
+# Arguments defined in docker-compose.yml
+ARG user
+ARG uid
 
-FROM base as poetry
-RUN pip install poetry==1.5.1
-COPY poetry.lock pyproject.toml /build/
-RUN poetry export -o requirements.txt
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    git \
+    curl \
+    libpng-dev \
+    libonig-dev \
+    libxml2-dev \
+    zip \
+    unzip
 
-FROM base as build
-COPY --from=poetry /build/requirements.txt /tmp/requirements.txt
-RUN python -m venv .venv && \
-    .venv/bin/pip install 'wheel==0.36.2' && \
-    .venv/bin/pip install -r /tmp/requirements.txt
+# Clear cache
+RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 
-FROM python:3.10.1-slim as runtime
-ENV PIP_DISABLE_PIP_VERSION_CHECK=1
-WORKDIR /build
-ENV PATH=/build/.venv/bin:$PATH
-COPY --from=build /build/.venv /build/.venv
-COPY . /build
+# Install PHP extensions
+RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd
+
+#Installing node 20.x
+RUN curl -sL https://deb.nodesource.com/setup_20.x| bash -
+RUN apt-get install -y nodejs
+
+# Get latest Composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+# Create system user to run Composer and Artisan Commands
+RUN useradd -G www-data,root -u $uid -d /home/$user $user
+RUN mkdir -p /home/$user/.composer && \
+    chown -R $user:$user /home/$user
+
+# Set working directory
+WORKDIR /var/www
+
+USER $user
+
+#CMD ["./init.sh"]
