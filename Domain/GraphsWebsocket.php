@@ -2,6 +2,8 @@
 
 namespace Domain;
 
+use App\DTO\MessageDTO;
+use App\Repositories\ChatRepository;
 use Ratchet\ConnectionInterface;
 use Ratchet\WebSocket\MessageComponentInterface;
 
@@ -24,6 +26,11 @@ class GraphsWebsocket implements MessageComponentInterface
         $this->clients->attach($conn);
         echo "New connection! ({$conn->resourceId})\n";
 
+        $querystring = $conn->httpRequest->getUri()->getQuery();
+        parse_str($querystring, $queryarray);
+
+        $conn->send( (new ChatRepository())->loadMessages((new MessageDTO(
+            $queryarray['from'] ?? null,$queryarray['to'] ?? null, $queryarray['stmt'] ?? null))));
 
 
 //        $sql = 'SELECT ai1, ai2, ai3, ai4,ai5, ai6, ai7, ai8, ai9, ai10
