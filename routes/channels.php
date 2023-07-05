@@ -1,5 +1,8 @@
 <?php
 
+use BeyondCode\LaravelWebSockets\Facades\WebSocketsRouter;
+use Domain\GraphsWebsocket;
+use Domain\TableWebsocket;
 use Illuminate\Support\Facades\Broadcast;
 
 /*
@@ -16,3 +19,6 @@ use Illuminate\Support\Facades\Broadcast;
 Broadcast::channel('App.Models.User.{id}', function ($user, $id) {
     return (int) $user->id === (int) $id;
 });
+
+WebSocketsRouter::webSocket('/ws/table/', TableWebsocket::class);
+WebSocketsRouter::webSocket('/ws/graphs/', GraphsWebsocket::class);

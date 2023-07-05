@@ -6,6 +6,7 @@
     "license": "MIT",
     "require": {
         "php": "^8.1",
+        "beyondcode/laravel-websockets": "^1.14",
         "guzzlehttp/guzzle": "^7.2",
         "laravel/framework": "^10.13",
         "laravel/sanctum": "^3.2",
@@ -23,6 +24,7 @@
     "autoload": {
         "psr-4": {
             "App\\": "app/",
+            "Domain\\": "Domain/",
             "Database\\Factories\\": "database/factories/",
             "Database\\Seeders\\": "database/seeders/"
         }

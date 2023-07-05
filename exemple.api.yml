@@ -5,8 +5,10 @@ info:
   version: 0.1.9
 
 servers:
-  - url: http://localhost:8000/api
+  - url: http://localhost:8082/api
     description: local server
+  - url: http://localhost:8000/api
+    description: docker server
   - url: http://producation.app/api
     description: production server
 

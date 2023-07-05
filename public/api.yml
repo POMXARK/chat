@@ -5,8 +5,10 @@ info:
   version: 0.0.1
 
 servers:
-  - url: http://localhost:8081/chat
+  - url: http://localhost:8082/chat
     description: local server
+  - url: http://localhost:8081/chat
+    description: docker server
 #  - url: http://producation.app/chat
 #    description: production server
 

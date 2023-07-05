@@ -17,67 +17,6 @@ use Throwable;
 
 class ParentChatController extends Controller
 {
-    protected $chatRow = '';
-
-    /**
-     * Загрузка файлов для прикрепления к сообщниям в чате.
-     *
-     * @param     $files
-     * @param int $messageId
-     * @param int $userId
-     *
-     * @return bool
-     * @throws \Exception
-     */
-    protected function uploadFiles($files, int $messageId, int $userId)
-    {
-        $storage = Storage::disk('documents');
-        $uploadedPaths = [];
-
-        FileManager::checkFilesSize($files);
-
-        try {
-            /** @var UploadedFile[] $files */
-            foreach ($files as $file) {
-                $filename = sprintf('%s.%s', str_random(32), $file->getClientOriginalExtension());
-                $filepath = 'client/' . $userId . '/comments/' . $filename;
-
-                $commentFile = $storage->putFileAs('client/' . $userId . '/comments', $file, $filename);
-                if (!$commentFile) {
-                    throw new UploadException();
-                }
-
-                $uploadedPaths[] = $filepath;
-
-                MessageDocument::create([
-                    'message_id' => $messageId,
-                    'path'       => $filepath,
-                    'name'       => $file->getClientOriginalName(),
-                    'extension'  => $file->getClientOriginalExtension(),
-                ]);
-            }
-        } catch (Throwable $e) {
-            foreach ($uploadedPaths as $path) {
-                $storage->delete($path);
-            }
-            throw new UploadException($e->getMessage());
-        }
-
-        return true;
-    }
-
-    /**
-     * Рендер строки чата
-     *
-     * @param Message $message
-     *
-     * @return string
-     */
-    protected function renderChatRow(Message $message)
-    {
-        return view($this->chatRow.'.'.$message->bubble, ['message' => $message])->render();
-    }
-
     /**
      * Скачивание документа из сообщения в чате.
      *
