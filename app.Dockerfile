@@ -4,21 +4,13 @@ FROM php:8.2-fpm
 ARG user
 ARG uid
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-    git \
-    curl \
-    libpng-dev \
-    libonig-dev \
-    libxml2-dev \
-    zip \
-    unzip
-
-# Clear cache
-RUN apt-get clean && rm -rf /var/lib/apt/lists/*
-
-# Install PHP extensions
-RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends nodejs npm libssl-dev zlib1g-dev curl git unzip libxml2-dev libpq-dev libzip-dev supervisor&& \
+    pecl install apcu && \
+    docker-php-ext-configure pgsql -with-pgsql=/usr/local/pgsql && \
+    docker-php-ext-install -j$(nproc) zip opcache intl pdo_pgsql pgsql && \
+    docker-php-ext-enable apcu pdo_pgsql sodium && \
+    apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 #Installing node 20.x
 RUN curl -sL https://deb.nodesource.com/setup_20.x| bash -
@@ -37,4 +29,4 @@ WORKDIR /var/www
 
 USER $user
 
-#CMD ["./init.sh"]
+#CMD ["/var/www/init.sh"]
